@@ -181,6 +181,22 @@ module.exports = function (RED) {
             if (node.telegramBot) {
                 this.status({ fill: "green", shape: "ring", text: "connected" });
                 
+                
+                node.telegramBot.on('callback_query', function (botMsg) {
+                    console.log(botMsg); // msg.data refers to the callback_data
+
+                    var username = botMsg.from.username;
+                    var chatid = botMsg.from.id;
+                    var msg = { payload: /*botMsg.data*/ { chatId: chatid, type: "callback_query", content: botMsg.data }, originalMessage: botMsg };
+                    var authorized = node.config.isAuthorized(chatid, username);
+                    if (authorized) {
+                        node.send([msg, null]);
+                    } else {
+                        node.send([null, msg]);
+                    }
+                });
+
+
                 node.telegramBot.on('message', function (botMsg) {
                     var username = botMsg.from.username;
                     var chatid = botMsg.chat.id;
